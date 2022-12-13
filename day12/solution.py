@@ -1,56 +1,89 @@
 def initHill(input):
   input = input.splitlines()
-  rows = len(input)
-  cols = len(input[0])
   hillGrid = []
   start = highest = (0,0)
 
-  for j,line in enumerate(input):
+  for i,line in enumerate(input):
     hillRow = []
-    for i,c in enumerate(line):
+    for j,c in enumerate(line):
       if(c == "S"):
         start = (i,j)
+        hillRow.append('a')
+        continue
       elif(c == "E"):
         highest = (i,j)
+        hillRow.append('z')
+        continue
       hillRow.append(c)
     hillGrid.append(hillRow)
   return [hillGrid, start, highest]
 
-def part1(hillGrid, start, highest):
+def printGrid(input):
+  grid = ""
+  for r in range(len(input)):
+    for c in range(len(input[0])):
+      grid += input[r][c]
+    grid += "\n"
+  grid += "\n"
+  print(grid)
+
+def part1(hillGrid, allStartPos, highest):
   DIRECTION = [(0,1), (1,0), (0,-1), (-1,0)]  
-  visited = set()
 
   def canClimb(hillGrid, curPos, nextPos):
-    curX, curY = curPos
-    nextX, nextY = nextPos
-    if(abs(ord(input[curX][curY])-ord(input[nextX][nextY])) <=1):
+    curR, curC = curPos
+    nextR, nextC = nextPos
+    
+    if(ord(hillGrid[curR][curC])-ord(hillGrid[nextR][nextC]) < 2):
       return True
     else:
       return False
 
-  def climb(hillGrid, curPos, highest):
-    if(curPos in visited):
-      return float("inf")
-    elif(curPos == highest):
-      return 1
-    
-    rows = len(hillGrid)
-    cols = len(hillGrid[0])
-    visited.add(curPos)
-    minStep = float("inf")
-    for x,y in DIRECTION:
-      nextX, nextY = curPos[0]+x, curPos[1]+y
-      if(nextX>=0 and nextX<rows and nextY>=0 and nextY<cols):
-        if(canClimb(hillGrid, curPos, (nextX, nextY))):
-          steps = climb(hillGrid, (nextX, nextY), highest)
-          minStep = min(minStep, steps)
-    visited.remove(curPos)
-    return minStep+1
+  queue = []
+  visited = set()
+  rows, cols = len(hillGrid), len(hillGrid[0])
+  steps = -1
 
-  minStep = climb(hillGrid, start, highest)
-  print(minStep)
+  visualGrid = [["-" for x in range(len(hillGrid[0]))] for x in range(len(hillGrid))]
+
+  queue.append(highest)
+  visited.add(highest)
+
+  while len(queue) > 0:
+    numOfNodes = len(queue)
+    steps +=1
+    for i in range(numOfNodes):
+      curPos = queue.pop(0)
+      
+      visualGrid[curPos[0]][curPos[1]] = "X"
+      printGrid(visualGrid)
+
+      if curPos in allStartPos:
+        print(steps)
+        return steps
+      
+      for r,c in DIRECTION:
+        nextR, nextC = curPos[0]+r, curPos[1]+c
+        if(nextR>=0 and nextR<rows and nextC>=0 and nextC<cols and (nextR, nextC) not in visited and canClimb(hillGrid, curPos, (nextR, nextC)) ):
+          visited.add((nextR, nextC))
+          queue.append((nextR, nextC))
+  
+  print("Cant find path")
+  return float("inf")
+
+def part2(hillGrid, highest):
+  rows, cols = len(hillGrid), len(hillGrid[0])
+  # find all possible starting positions
+  allStartPos = set()
+  for r in range(rows):
+    for c in range(cols):
+      if hillGrid[r][c] == 'a':
+        allStartPos.add((r,c))
+  part1(hillGrid, allStartPos, highest)
+  
 
 # main
-input = open('day12/test.txt').read()
+input = open('day12/input.txt').read()
 hillGrid, start, highest = initHill(input)
-part1(hillGrid,start,highest)
+# part1(hillGrid,{start},highest)
+part2(hillGrid,highest)
