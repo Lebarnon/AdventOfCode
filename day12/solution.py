@@ -85,5 +85,5 @@ def part2(hillGrid, highest):
 # main
 input = open('day12/input.txt').read()
 hillGrid, start, highest = initHill(input)
-# part1(hillGrid,{start},highest)
+part1(hillGrid,{start},highest)
 part2(hillGrid,highest)
